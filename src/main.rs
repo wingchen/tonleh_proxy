@@ -8,20 +8,11 @@ use hudsucker::{
 use rustls_pemfile as pemfile;
 use std::net::SocketAddr;
 use log::*;
-use actix_web::{web, App, HttpServer, Responder};
+use actix_web::{web, App, HttpServer, Responder, HttpResponse, HttpRequest};
 use actix_files::Files;
+use tera::{Tera, Context};
 use systemd_journal_logger::JournalLog;
 
-
-async fn shutdown_signal() {
-    tokio::signal::ctrl_c()
-        .await
-        .expect("Failed to install CTRL+C signal handler");
-}
-
-async fn actix_web_handler() -> impl Responder {
-    "Hello from Actix Web!"
-}
 
 #[derive(Clone)]
 struct LogHandler;
@@ -88,9 +79,31 @@ async fn proxy_handler() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+async fn shutdown_signal() {
+    tokio::signal::ctrl_c()
+        .await
+        .expect("Failed to install CTRL+C signal handler");
+}
+
+async fn actix_web_handler() -> impl Responder {
+    "Hello from Actix Web!"
+}
+
+async fn render_login(data: web::Data<Tera>, req:HttpRequest) -> impl Responder {
+    let mut ctx = Context::new();
+    let rendered = data.render("auth_login.html", &ctx).unwrap();
+    HttpResponse::Ok().body(rendered)
+}
+
+async fn render_signup(data: web::Data<Tera>, req:HttpRequest) -> impl Responder {
+    let mut ctx = Context::new();
+    let rendered = data.render("auth_signup.html", &ctx).unwrap();
+    HttpResponse::Ok().body(rendered)
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // let tokio_runtime = tokio::runtime::Runtime::new().expect("Unable to create Tokio runtime");
+    // Create hudsucker Proxy server
     JournalLog::default().install().unwrap();
     log::set_max_level(LevelFilter::Debug);
 
@@ -106,9 +119,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("starting tonleh web at: {:?}", web_address);
 
     HttpServer::new(|| {
+        let tera = Tera::new("templates/**/*").expect("Error readding html templates");
+
         App::new()
-        .service(Files::new("/", "static").index_file("index.html"))
-        .route("/api", web::get().to(actix_web_handler))
+            .app_data(web::Data::new(tera))
+            .service(web::resource("/login").route(web::get().to(render_login)))
+            .service(web::resource("/signup").route(web::get().to(render_signup)))
+            .route("/api", web::get().to(actix_web_handler))
+            .service(Files::new("/", "static"))
     })
     .bind(addr)
     .expect("Unable to bind address")
