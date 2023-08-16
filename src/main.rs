@@ -8,11 +8,14 @@ use hudsucker::{
 use rustls_pemfile as pemfile;
 use std::net::SocketAddr;
 use log::*;
-use actix_web::{web, App, HttpServer, Responder, HttpResponse, HttpRequest};
+use actix_web::{web, App, HttpServer};
 use actix_files::Files;
-use tera::{Tera, Context};
+use tera::{Tera};
 use systemd_journal_logger::JournalLog;
+use dotenv::dotenv;
 
+mod web_funs;
+mod data;
 
 #[derive(Clone)]
 struct LogHandler;
@@ -85,22 +88,6 @@ async fn shutdown_signal() {
         .expect("Failed to install CTRL+C signal handler");
 }
 
-async fn actix_web_handler() -> impl Responder {
-    "Hello from Actix Web!"
-}
-
-async fn render_login(data: web::Data<Tera>, req:HttpRequest) -> impl Responder {
-    let mut ctx = Context::new();
-    let rendered = data.render("auth_login.html", &ctx).unwrap();
-    HttpResponse::Ok().body(rendered)
-}
-
-async fn render_signup(data: web::Data<Tera>, req:HttpRequest) -> impl Responder {
-    let mut ctx = Context::new();
-    let rendered = data.render("auth_signup.html", &ctx).unwrap();
-    HttpResponse::Ok().body(rendered)
-}
-
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Create hudsucker Proxy server
@@ -123,9 +110,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         App::new()
             .app_data(web::Data::new(tera))
-            .service(web::resource("/login").route(web::get().to(render_login)))
-            .service(web::resource("/signup").route(web::get().to(render_signup)))
-            .route("/api", web::get().to(actix_web_handler))
+            .service(web::resource("/login").route(web::get().to(web_funs::render_login)))
+            .service(web::resource("/login").route(web::post().to(web_funs::login)))
+
+            .service(web::resource("/signup").route(web::get().to(web_funs::render_signup)))
+            .service(web::resource("/users").route(web::get().to(web_funs::render_users)))
+            .service(web::resource("/devices").route(web::get().to(web_funs::render_devices)))
+            .service(web::resource("/history").route(web::get().to(web_funs::render_history)))
+            .route("/api", web::get().to(web_funs::actix_web_handler))
             .service(Files::new("/", "static"))
     })
     .bind(addr)

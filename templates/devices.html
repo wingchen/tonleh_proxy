@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}
+<title>Tonleh Auth - Devices</title>
+{% endblock title %}
+
+{% block main %}
+<main id="main" class="main">
+   <div class="pagetitle">
+      <h1>Devices</h1>
+      <nav>
+         <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Dashboard</a></li>
+            <li class="breadcrumb-item active">Devices</li>
+         </ol>
+      </nav>
+   </div>
+   <!-- End Page Title -->
+   <section class="section">
+      <div class="row">
+         <div class="col-lg-6">
+            <div class="card">
+               <div class="card-body">
+                  <h5 class="card-title">Devices</h5>
+                  <p>These are the devices we are able to find in the local network.</p>
+                  <p>We will keep refreshing the network for new devices.</p>
+                  <!-- Active Table -->
+                  <table class="table table-borderless">
+                     <thead>
+                        <tr>
+                           <th scope="col">Device</th>
+                           <th scope="col">Status</th>
+                           <th scope="col">Actions</th>
+                        </tr>
+                     </thead>
+                     <tbody>
+                        <tr>
+                           <th scope="row">Watson's Phone</th>
+                           <td>Monitoring</td>
+                           <td>
+                              <button type="button" class="btn btn-outline-success btn-sm">Trust</button>
+                           </td>
+                        </tr>
+                        <tr>
+                           <th scope="row">Agatha's PC</th>
+                           <td>Not Monitoring</td>
+                           <td>
+                              <button type="button" class="btn btn-outline-warning btn-sm">Monitor</button>
+                           </td>
+                        </tr>
+                        <tr>
+                           <th scope="row">Secret iPad</th>
+                           <td>Monitoring</td>
+                           <td>
+                              <button type="button" class="btn btn-outline-success btn-sm">Trust</button>
+                           </td>
+                        </tr>
+                     </tbody>
+                  </table>
+                  <!-- End Tables without borders -->
+               </div>
+            </div>
+         </div>
+      </div>
+   </section>
+</main>
+<!-- End #main -->
+{% endblock main %}

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}
+<title>Tonleh History - Admin Records</title>
+{% endblock title %}
+
+{% block main %}
+<main id="main" class="main">
+   <div class="pagetitle">
+      <h1>Admin History</h1>
+      <nav>
+         <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Dashboard</a></li>
+            <li class="breadcrumb-item active">History</li>
+         </ol>
+      </nav>
+   </div>
+   <!-- End Page Title -->
+   <section class="section">
+      <div class="row">
+         <div class="col-lg-6">
+            <div class="card">
+               <div class="card-body">
+                  <h5 class="card-title">Admin History</h5>
+                  <p>You will be able to query and see all the admin histories here.</p>
+                  <!-- Active Table -->
+                  <table class="table table-borderless">
+                     <thead>
+                        <tr>
+                           <th scope="col">User Name</th>
+                           <th scope="col">Action</th>
+                           <th scope="col">Time</th>
+                        </tr>
+                     </thead>
+                     <tbody>
+                        <tr>
+                           <th scope="row">Brandon Jacob</th>
+                           <td>admin account created</td>
+                           <td>2016-05-25</td>
+                        </tr>
+                        <tr>
+                           <th scope="row">Brandon Jacob</th>
+                           <td>added monitoring devices - Agatha PC</td>
+                           <td>2016-05-25</td>
+                        </tr>
+                        <tr>
+                           <th scope="row">Brandon Jacob</th>
+                           <td>admin account created</td>
+                           <td>2016-05-25</td>
+                        </tr>
+                     </tbody>
+                  </table>
+                  <!-- End Tables without borders -->
+               </div>
+            </div>
+         </div>
+      </div>
+   </section>
+</main>
+<!-- End #main -->
+{% endblock main %}

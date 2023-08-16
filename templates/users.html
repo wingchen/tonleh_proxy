@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}
+<title>Tonleh Auth - Admin Users</title>
+{% endblock title %}
+
+{% block main %}
+<main id="main" class="main">
+   <div class="pagetitle">
+      <h1>Admin Users</h1>
+      <nav>
+         <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Dashboard</a></li>
+            <li class="breadcrumb-item active">Users</li>
+         </ol>
+      </nav>
+   </div>
+   <!-- End Page Title -->
+   <section class="section">
+      <div class="row">
+         <div class="col-lg-6">
+            <div class="card">
+               <div class="card-body">
+                  <h5 class="card-title">Admin Users</h5>
+                  <p>All the users are admin users. You can delete users. However, you are not able to delete the last user.</p>
+                  <!-- Active Table -->
+                  <table class="table table-borderless">
+                     <thead>
+                        <tr>
+                           <th scope="col">User Name</th>
+                           <th scope="col">Start Date</th>
+                           <th scope="col">Actions</th>
+                        </tr>
+                     </thead>
+                     <tbody>
+                        <tr>
+                           <th scope="row">Brandon Jacob</th>
+                           <td>2016-05-25</td>
+                           <td>
+                              <button type="button" class="btn btn-outline-danger btn-sm">Delete</button>
+                           </td>
+                        </tr>
+                        <tr>
+                           <th scope="row">Bridie Kessler</th>
+                           <td>2014-12-05</td>
+                           <td>
+                              <button type="button" class="btn btn-outline-danger btn-sm">Delete</button>
+                           </td>
+                        </tr>
+                        <tr>
+                           <th scope="row">Ashleigh Langosh</th>
+                           <td>2011-08-12</td>
+                           <td>
+                              <button type="button" class="btn btn-outline-danger btn-sm">Delete</button>
+                           </td>
+                        </tr>
+                     </tbody>
+                  </table>
+                  <!-- End Tables without borders -->
+               </div>
+            </div>
+         </div>
+      </div>
+   </section>
+</main>
+<!-- End #main -->
+{% endblock main %}
