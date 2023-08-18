@@ -8,14 +8,21 @@ use hudsucker::{
 use rustls_pemfile as pemfile;
 use std::net::SocketAddr;
 use log::*;
-use actix_web::{web, App, HttpServer};
+use actix_web::{cookie::{self, Key}, web, App, HttpServer};
+use actix_session::{
+    config::PersistentSession, storage::CookieSessionStore, Session, SessionMiddleware,
+};
 use actix_files::Files;
 use tera::{Tera};
 use systemd_journal_logger::JournalLog;
-use dotenv::dotenv;
+
+use sqlx::sqlite::SqlitePool;
+use sqlx::Sqlite;
 
 mod web_funs;
 mod data;
+
+use crate::web_funs::AppState;
 
 #[derive(Clone)]
 struct LogHandler;
@@ -88,11 +95,17 @@ async fn shutdown_signal() {
         .expect("Failed to install CTRL+C signal handler");
 }
 
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+
     // Create hudsucker Proxy server
     JournalLog::default().install().unwrap();
     log::set_max_level(LevelFilter::Debug);
+
+    if std::env::var_os("RUST_LOG").is_none() {
+        std::env::set_var("RUST_LOG", "actix_web=info");
+    }
 
     tokio::spawn(async move {
         if let Err(e) = proxy_handler().await {
@@ -100,20 +113,36 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     });
 
+    // connect to db
+    let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    let pool = SqlitePool::connect(&database_url).await.unwrap();
+
     // Create Actix Web server
     let web_address = ([127, 0, 0, 1], 5566);
     let addr = SocketAddr::from(web_address);
     println!("starting tonleh web at: {:?}", web_address);
 
-    HttpServer::new(|| {
+    HttpServer::new(move || {
         let tera = Tera::new("templates/**/*").expect("Error readding html templates");
 
         App::new()
-            .app_data(web::Data::new(tera))
+            // cookie session middleware
+            .wrap(
+                SessionMiddleware::builder(CookieSessionStore::default(), Key::from(&[0; 64]))
+                    .cookie_secure(false)
+                    // customize session and cookie expiration
+                    .session_lifecycle(
+                        PersistentSession::default().session_ttl(cookie::time::Duration::hours(2)),
+                    )
+                    .build(),
+            )
+            .app_data(web::Data::new(AppState { db: pool.clone(), tmpl: tera }))
             .service(web::resource("/login").route(web::get().to(web_funs::render_login)))
-            .service(web::resource("/login").route(web::post().to(web_funs::login)))
+            .service(web::resource("/login.do").route(web::post().to(web_funs::login)))
 
             .service(web::resource("/signup").route(web::get().to(web_funs::render_signup)))
+            .service(web::resource("/signup.do").route(web::post().to(web_funs::signup)))
+
             .service(web::resource("/users").route(web::get().to(web_funs::render_users)))
             .service(web::resource("/devices").route(web::get().to(web_funs::render_devices)))
             .service(web::resource("/history").route(web::get().to(web_funs::render_history)))

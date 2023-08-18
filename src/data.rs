@@ -1,10 +1,11 @@
-use serde::Deserialize;
+use serde::{Serialize, Deserialize};
 use std::error::Error;
 use chrono::NaiveDateTime;
 use sqlx::FromRow;
 use sqlx::SqliteConnection;
+use sqlx::sqlite::SqlitePool;
 
-#[derive(FromRow, Debug)]
+#[derive(FromRow, Debug, Serialize, Deserialize)]
 pub struct User {
     pub id: i64,
     pub username: String,
@@ -12,7 +13,7 @@ pub struct User {
     pub removed: Option<bool>,
 }
 
-#[derive(FromRow, Debug)]
+#[derive(FromRow, Debug, Serialize, Deserialize)]
 pub struct Device {
     pub id: i64,
     pub name: String,
@@ -33,9 +34,9 @@ pub struct Device {
 //     pub time: NaiveDateTime,
 // }
 
-async fn user_exists(conn: &mut SqliteConnection, username: &str) -> Result<bool, &'static str> {
+async fn user_exists(pool: &SqlitePool, username: &str) -> Result<bool, &'static str> {
     let query = sqlx::query!("SELECT COUNT(*) as count FROM users WHERE username = ?", username)
-        .fetch_one(conn)
+        .fetch_one(pool)
         .await;
 
     match query {
@@ -46,12 +47,9 @@ async fn user_exists(conn: &mut SqliteConnection, username: &str) -> Result<bool
     }
 }
 
-pub async fn create_user(conn: &mut SqliteConnection, username: &str) -> sqlx::Result<u64> {
-    match user_exists(conn, username).await {
-        Ok(true) => {
-            return Ok(0);
-        },
-        Ok(false) => {
+pub async fn create_user(pool: &SqlitePool, username: &str) -> sqlx::Result<Option<User>> {
+    match get_user(pool, username).await {
+        Ok(None) => {
             let now = chrono::Utc::now().timestamp();
 
             let insert_result = sqlx::query!(
@@ -59,35 +57,38 @@ pub async fn create_user(conn: &mut SqliteConnection, username: &str) -> sqlx::R
                 username,
                 now
             )
-            .execute(conn)
+            .execute(pool)
             .await;
 
             match insert_result {
-                Ok(records) => {
-                    Ok(records.rows_affected())
-                },
+                Ok(_records) => {},
                 Err(e) => panic!("{:?}", "db operation failed"),
-            }
+            };
+
+            return get_user(pool, username).await;
         },
-        Err(e) => return Ok(0),
+        Ok(user) => {
+            return Ok(user);
+        },
+        Err(e) => return Ok(None),
     }
 }
 
-pub async fn get_user(conn: &mut SqliteConnection, username: &str) -> sqlx::Result<Option<User>> {
-    match user_exists(conn, username).await {
+pub async fn get_user(pool: &SqlitePool, username: &str) -> sqlx::Result<Option<User>> {
+    match user_exists(pool, username).await {
         Ok(true) => {
-            Ok(None)
-        },
-        Ok(false) => {
             let result = sqlx::query_as!(
                     User,
                     "SELECT * FROM users WHERE username = ? AND (removed IS NULL OR removed != 1)",
                     username
                 )
-                .fetch_optional(conn)
+                .fetch_optional(pool)
                 .await?;
 
             Ok(result)
+        },
+        Ok(false) => {
+            Ok(None)
         },
         Err(e) => panic!("{:?}", "this could not happen"),
     }
