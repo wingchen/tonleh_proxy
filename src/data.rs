@@ -1,8 +1,5 @@
 use serde::{Serialize, Deserialize};
-use std::error::Error;
-use chrono::NaiveDateTime;
 use sqlx::FromRow;
-use sqlx::SqliteConnection;
 use sqlx::sqlite::SqlitePool;
 
 #[derive(FromRow, Debug, Serialize, Deserialize)]
@@ -43,7 +40,7 @@ async fn user_exists(pool: &SqlitePool, username: &str) -> Result<bool, &'static
         Ok(record) => {
             Ok(record.count > 0)
         },
-        Err(e) => panic!("{:?}", "db operation failed"),
+        Err(e) => panic!("{:?}: {:?}", "db operation failed", e),
     }
 }
 
@@ -62,7 +59,7 @@ pub async fn create_user(pool: &SqlitePool, username: &str) -> sqlx::Result<Opti
 
             match insert_result {
                 Ok(_records) => {},
-                Err(e) => panic!("{:?}", "db operation failed"),
+                Err(e) => panic!("{:?}: {:?}", "db operation failed", e),
             };
 
             return get_user(pool, username).await;
@@ -70,7 +67,7 @@ pub async fn create_user(pool: &SqlitePool, username: &str) -> sqlx::Result<Opti
         Ok(user) => {
             return Ok(user);
         },
-        Err(e) => return Ok(None),
+        Err(_e) => return Ok(None),
     }
 }
 
@@ -90,6 +87,17 @@ pub async fn get_user(pool: &SqlitePool, username: &str) -> sqlx::Result<Option<
         Ok(false) => {
             Ok(None)
         },
-        Err(e) => panic!("{:?}", "this could not happen"),
+        Err(e) => panic!("{:?}: {:?}", "this could not happen", e),
     }
+}
+
+pub async fn get_users(pool: &SqlitePool) -> sqlx::Result<Vec<User>> {
+    let result = sqlx::query_as!(
+        User,
+        "SELECT * FROM users WHERE removed IS NULL OR removed != 1"
+        )
+        .fetch_all(pool)
+        .await?;
+
+    Ok(result)
 }

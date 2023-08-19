@@ -10,14 +10,13 @@ use std::net::SocketAddr;
 use log::*;
 use actix_web::{cookie::{self, Key}, web, App, HttpServer};
 use actix_session::{
-    config::PersistentSession, storage::CookieSessionStore, Session, SessionMiddleware,
+    config::PersistentSession, storage::CookieSessionStore, SessionMiddleware,
 };
 use actix_files::Files;
 use tera::{Tera};
 use systemd_journal_logger::JournalLog;
 
 use sqlx::sqlite::SqlitePool;
-use sqlx::Sqlite;
 
 mod web_funs;
 mod data;

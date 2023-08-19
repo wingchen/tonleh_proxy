@@ -27,33 +27,21 @@
                   <table class="table table-borderless">
                      <thead>
                         <tr>
-                           <th scope="col">User Name</th>
+                           <th scope="col">username</th>
                            <th scope="col">Start Date</th>
                            <th scope="col">Actions</th>
                         </tr>
                      </thead>
                      <tbody>
+                        {% for user in users %}
                         <tr>
-                           <th scope="row">Brandon Jacob</th>
-                           <td>2016-05-25</td>
+                           <th scope="row">{{ user.username }}</th>
+                           <td>{{ user.created_at | date(format="%Y-%m-%d %H:%M:%S") }}</td>
                            <td>
                               <button type="button" class="btn btn-outline-danger btn-sm">Delete</button>
                            </td>
                         </tr>
-                        <tr>
-                           <th scope="row">Bridie Kessler</th>
-                           <td>2014-12-05</td>
-                           <td>
-                              <button type="button" class="btn btn-outline-danger btn-sm">Delete</button>
-                           </td>
-                        </tr>
-                        <tr>
-                           <th scope="row">Ashleigh Langosh</th>
-                           <td>2011-08-12</td>
-                           <td>
-                              <button type="button" class="btn btn-outline-danger btn-sm">Delete</button>
-                           </td>
-                        </tr>
+                        {% endfor %}
                      </tbody>
                   </table>
                   <!-- End Tables without borders -->
