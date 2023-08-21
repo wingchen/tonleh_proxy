@@ -143,3 +143,9 @@ pub async fn render_history(data: web::Data<AppState>) -> impl Responder {
     let rendered = data.tmpl.render("history.html", &ctx).unwrap();
     HttpResponse::Ok().body(rendered)
 }
+
+pub async fn render_index(data: web::Data<AppState>) -> impl Responder {
+    let mut ctx = Context::new();
+    let rendered = data.tmpl.render("index.html", &ctx).unwrap();
+    HttpResponse::Ok().body(rendered)
+}

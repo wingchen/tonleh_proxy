@@ -136,6 +136,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     .build(),
             )
             .app_data(web::Data::new(AppState { db: pool.clone(), tmpl: tera }))
+            .service(web::resource("/").route(web::get().to(web_funs::render_index)))
+
             .service(web::resource("/login").route(web::get().to(web_funs::render_login)))
             .service(web::resource("/login.do").route(web::post().to(web_funs::login)))
 
